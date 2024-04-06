@@ -406,7 +406,7 @@ SERVERS=(
 	"paris.testdebit.info"            "9200-9240" "Bouygues"  "Paris, France(10G)"              "Europe"        "v4|v6"
 	"iperf3.moji.fr"                  "5200-5240" "Moji"      "Ile-de-France, France(100G)"     "Europe"        "v4|v6"
 	"la.speedtest.clouvider.net"      "5200-5209" "Clouvider" "Los Angeles, United States(10G)" "North America" "v4|v6"
-	"speedtest.mia11.us.leaseweb.net" "5201-5210" "Leaseweb"  "Miami, United States(10G)" 		"North America" "v4|v6"
+	"speedtest.mia11.us.leaseweb.net" "5201-5210" "Leaseweb"  "Miami, United States(10G)"       "North America" "v4|v6"
 	"speedtest.syd12.au.leaseweb.net" "5201-5210" "Leaseweb"  "Sydney, Australia(10G)"          "Oceania"       "v4|v6"
 )
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
