@@ -4,7 +4,7 @@ unset IPV4_ONLY IPV6_ONLY CUSTOM_SERVER
 IPV4_ONLY="True"
 IPV6_ONLY="True"
 CUSTOM_SERVER="False"
-while getopts 'bfdignhr4596jw:s:' flag; do
+while getopts '46:s:' flag; do
 	case "${flag}" in
 		4) IPV4_ONLY="True" && unset IPV6_ONLY ;;
 		6) IPV6_ONLY="True" && unset IPV4_ONLY ;;
