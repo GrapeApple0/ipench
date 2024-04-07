@@ -4,14 +4,39 @@ unset IPV4_ONLY IPV6_ONLY CUSTOM_SERVER
 IPV4_ONLY="True"
 IPV6_ONLY="True"
 CUSTOM_SERVER="False"
-while getopts '46:s:' flag; do
+CUSTOM_PORTS="5201"
+while getopts '46c:p:' flag; do
 	case "${flag}" in
 		4) IPV4_ONLY="True" && unset IPV6_ONLY ;;
 		6) IPV6_ONLY="True" && unset IPV4_ONLY ;;
-		s) CUSTOM_SERVER=${OPTARG} ;; 
+		c) CUSTOM_SERVER=${OPTARG};;
+		p) CUSTOM_PORTS=${OPTARG};;
+		:);;
 		*) exit 1 ;;
 	esac
 done
+
+function domain_ipversion_check() {
+	local DOMAIN="$1"
+	local IP_VERSION="$2"
+	local READY
+	READY="$(ping -c1 "$DOMAIN" 2>&1)"
+	if [[ "$READY" != *"Name or service not known"* ]]; then
+		if [[ "$IP_VERSION" == "4" ]]; then
+			READY="$(ping -4 -c1 "$DOMAIN" 2>&1)"
+			if [[ "$READY" == *"Address family for hostname not supported"* ]]; then
+				MODE=6
+			fi
+		elif [[ "$IP_VERSION" == "6" ]]; then
+			READY="$(ping -6 -c1 "$DOMAIN" 2>&1)"
+			if [[ "$READY" == *"Address family for hostname not supported"* ]]; then
+				MODE=4
+			fi
+		fi
+	else
+		MODE=-1
+	fi
+}
 
 function ip_info() {	
 	declare -A countries=(
@@ -282,6 +307,7 @@ function ip_info() {
 	local CITY
 	local AS
 	local ORG
+	local IPINFO
 	RESULT="$(curl -sfL https://ip"$IP_VERSION"only.me/api/)"
 	ADDR="$(echo "$RESULT" | awk -F "," '{print $2}')"
 	INFO="$(curl -s ip-api.com/json/"$ADDR" | tr "{" '\n' | tr "," '\n' | tr "}" '\n' | sed 's/": "/":"/g' | sed 's/ /\\s/g')"
@@ -317,18 +343,15 @@ function run_iperf(){
 	local MODE="$3"
 	local IP_VERSION="$4"
 	local RECURSION="${5:-0}"
-	if [[ "$RECURSION" -ge 1 ]]; then
-		echo -en "\r\033[1K"
-	fi
 	if [[ "$RECURSION" -ge 3 ]]; then
 		echo -n "Error: too many retries"
 		sleep 2
 		return 1
 	fi
 	if [[ "$MODE" == "s" ]]; then
-		result=$(timeout 20 iperf3 -c "$SERVER" -p "$PORT" -P 8 2>&1 -"$IP_VERSION")
+		result=$(timeout 20 iperf3 -c "$SERVER" -p "$PORT" -P 8 -"$IP_VERSION" 2>&1)
 	elif [[ "$MODE" == "r" ]]; then
-		result=$(timeout 20 iperf3 -c "$SERVER" -p "$PORT" -P 8 2>&1 -R -"$IP_VERSION")
+		result=$(timeout 20 iperf3 -c "$SERVER" -p "$PORT" -P 8 -R -"$IP_VERSION" 2>&1)
 	fi
 	if [[ "$result" == *"error"* ]]; then
 		if [[ "$result" == *"the server is busy running a test"* ]]; then
@@ -354,7 +377,7 @@ function iperf_test() {
 	local SEND_SPEED
 	local RECV_SPEED
 	local LATENCY
-	LATENCY="$(ping -c5 "$SERVER" 2>/dev/null | grep -o 'time=.*' | sed s/'time='//)"
+	LATENCY="$(ping -c5 "$SERVER" "-$IP_VERSION" 2>/dev/null | grep -o 'time=.*' | sed s/'time='//)"
 	if [[ "$LATENCY" != "" ]]; then
 		LATENCY="$(echo "$LATENCY" | awk '{sum+=$1} END {print sum/NR}')"
 	else
@@ -373,7 +396,7 @@ function iperf_test() {
 				sleep 2
 			fi
 			echo -en "\r\033[0K"
-			if [[ "$result" == *"receiver"* ]]; then
+			if [[ "$result" == *"receiver"* && "$result" != *"0.00 bits/sec"* ]]; then
 				SPEED=$(echo "$result" | grep SUM | grep receiver | awk '{print $6 " " $7}')
 			else
 				SPEED=failed
@@ -389,9 +412,12 @@ function iperf_test() {
 }
 
 function cleanup() {
-	echo -en "\r\033[0K"
-	echo "Cleaning up..."
-	unset IPV4_ONLY IPV6_ONLY SERVERS CUSTOM_SERVER SERVERS_COUNT
+	local PRINT="${1:-True}"
+	if [[ "$PRINT" == "True" ]]; then
+		echo -en "\r\033[0K"
+		echo "Cleaning up..."
+	fi
+	unset IPV4_ONLY IPV6_ONLY SERVERS SERVERS_COUNT CUSTOM_SERVER CUSTOM_PORTS SERVERS_COUNT MODE
 	exit 0
 }
 
@@ -417,7 +443,21 @@ echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 trap cleanup INT
 if [[ "$CUSTOM_SERVER" != "False" ]]; then
 	# TODO
-	exit 0
+	if [[ "$CUSTOM_PORTS" != *"-"* ]]; then
+		CUSTOM_PORTS="$CUSTOM_PORTS-$CUSTOM_PORTS"
+	fi
+	MODE=4
+	if [[ "$IPV6_ONLY" == "True" ]]; then
+		MODE=6
+	fi
+	domain_ipversion_check "$CUSTOM_SERVER" "$MODE"
+	if [[ "$MODE" == -1 ]]; then
+		echo "Error: Domain is unreachable"
+		cleanup False
+	else
+		iperf_test "$CUSTOM_SERVER" "$CUSTOM_PORTS" "$CUSTOM_SERVER" "Custom Server" $MODE
+	fi
+	
 else
 	SERVERS_COUNT=${#SERVERS[*]}
 	SERVERS_COUNT=$(("$SERVERS_COUNT" / 6))
@@ -442,3 +482,5 @@ else
 		done
 	fi
 fi
+
+cleanup False
