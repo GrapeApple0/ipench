@@ -438,7 +438,7 @@ SERVERS=(
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 echo "*                 iPench                 *"
 echo "*  Yet Another Network Benchmark Script  *"
-echo "*                ver$PACKAGE_VERSION                 *"
+echo "*                ver$PACKAGE_VERSION                *"
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 trap cleanup INT
 if [[ "$CUSTOM_SERVER" != "False" ]]; then
