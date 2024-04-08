@@ -429,7 +429,7 @@ SERVERS=(
 	"speedtest.novoserve.com"         "5201-5206" "Novoserve" "Amsterdam, Netherlands(40G)"     "Europe"        "v4|v6"
 	"lon.speedtest.clouvider.net"     "5200-5209" "Clouvider" "London, United Kingdom(10G)"     "Europe"        "v4|v6"
 	"lg.terrahost.com"                "9200-9240" "TerraHost" "Sandefjord, Norway(10G)"         "Europe"        "v4|v6"
-	"spd-icsrv.hostkey.com"           "5201-5210" "Hostkey"   "Reykjavik, Iceland(10G)"         "Europe"        "v4|v6"
+	"spd-icsrv.hostkey.com"           "5201-5210" "Hostkey"   "Reykjavik, Iceland(10G)"         "Europe"        "v4"
 	"paris.testdebit.info"            "9200-9240" "Bouygues"  "Paris, France(10G)"              "Europe"        "v4|v6"
 	"iperf3.moji.fr"                  "5200-5240" "Moji"      "Ile-de-France, France(100G)"     "Europe"        "v4|v6"
 	"la.speedtest.clouvider.net"      "5200-5209" "Clouvider" "Los Angeles, United States(10G)" "North America" "v4|v6"
@@ -468,7 +468,9 @@ else
 		echo --------------------------
 		printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
 		for ((i=0; "$SERVERS_COUNT">"$i"; i++)); do
-			iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 4
+			if [[ "${SERVERS[$i*6+5]}" == *"v4"* ]]; then
+				iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 4
+			fi
 		done
 	fi
 	if [[ "$IPV6_ONLY" == "True" ]]; then
@@ -478,7 +480,9 @@ else
 		echo --------------------------
 		printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
 		for ((i=0; "$SERVERS_COUNT">"$i"; i++)); do
-			iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 6
+			if [[ "${SERVERS[$i*6+5]}" == *"v6"* ]]; then
+				iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 6
+			fi
 		done
 	fi
 fi
