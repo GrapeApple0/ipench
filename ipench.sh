@@ -1,14 +1,14 @@
 #!/bin/bash
 PACKAGE_VERSION="1.0.0"
 unset IPV4_ONLY IPV6_ONLY CUSTOM_SERVER
-FORCE_IPV4_ONLY="True"
-FORCE_IPV6_ONLY="True"
+IPV4_ONLY="True"
+IPV6_ONLY="True"
 CUSTOM_SERVER="False"
 CUSTOM_PORTS="5201"
 while getopts '46c:p:' flag; do
 	case "${flag}" in
-		4) FORCE_IPV4_ONLY="True" && unset FORCE_IPV6_ONLY ;;
-		6) FORCE_IPV6_ONLY="True" && unset FORCE_IPV4_ONLY ;;
+		4) IPV4_ONLY="True" && unset IPV6_ONLY ;;
+		6) IPV6_ONLY="True" && unset IPV4_ONLY ;;
 		c) CUSTOM_SERVER=${OPTARG};;
 		p) CUSTOM_PORTS=${OPTARG};;
 		:);;
@@ -457,10 +457,10 @@ if [[ "$CUSTOM_SERVER" != "False" ]]; then
 		CUSTOM_PORTS="$CUSTOM_PORTS-$CUSTOM_PORTS"
 	fi
 	MODE=4
-	if [[ "$FORCE_IPV6_ONLY" == "True" ]]; then
+	if [[ "$IPV6_ONLY" == "True" ]]; then
 		MODE=6
 	fi
-	if [[ "$FORCE_IPV4_ONLY" != "True" && "$FORCE_IPV6_ONLY" != "True" ]]; then
+	if [[ "$IPV4_ONLY" != "True" && "$IPV6_ONLY" != "True" ]]; then
 		domain_ipversion_check "$CUSTOM_SERVER" "$MODE"
 	else
 		domain_ipversion_check "$CUSTOM_SERVER" "$MODE" yes
@@ -475,7 +475,7 @@ if [[ "$CUSTOM_SERVER" != "False" ]]; then
 else
 	SERVERS_COUNT=${#SERVERS[*]}
 	SERVERS_COUNT=$(("$SERVERS_COUNT" / 6))
-	if [[ "$FORCE_IPV4_ONLY" == "True" ]]; then
+	if [[ "$IPV4_ONLY" == "True" ]]; then
 		ip_info 4 ipinfo
 		echo
 		echo "#IPv4 mode"
@@ -487,7 +487,7 @@ else
 			fi
 		done
 	fi
-	if [[ "$FORCE_IPV6_ONLY" == "True" ]]; then
+	if [[ "$IPV6_ONLY" == "True" ]]; then
 		ip_info 6 ipinfo
 		echo
 		echo "#IPv6 mode"
