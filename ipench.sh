@@ -1,14 +1,14 @@
 #!/bin/bash
 PACKAGE_VERSION="1.0.0"
 unset IPV4_ONLY IPV6_ONLY CUSTOM_SERVER
-IPV4_ONLY="True"
-IPV6_ONLY="True"
+FORCE_IPV4_ONLY="True"
+FORCE_IPV6_ONLY="True"
 CUSTOM_SERVER="False"
 CUSTOM_PORTS="5201"
 while getopts '46c:p:' flag; do
 	case "${flag}" in
-		4) IPV4_ONLY="True" && unset IPV6_ONLY ;;
-		6) IPV6_ONLY="True" && unset IPV4_ONLY ;;
+		4) FORCE_IPV4_ONLY="True" && unset FORCE_IPV6_ONLY ;;
+		6) FORCE_IPV6_ONLY="True" && unset FORCE_IPV4_ONLY ;;
 		c) CUSTOM_SERVER=${OPTARG};;
 		p) CUSTOM_PORTS=${OPTARG};;
 		:);;
@@ -19,18 +19,27 @@ done
 function domain_ipversion_check() {
 	local DOMAIN="$1"
 	local IP_VERSION="$2"
+	local SET_MODE="{$3:yes}"
 	local READY
 	READY="$(ping -c1 "$DOMAIN" 2>&1)"
 	if [[ "$READY" != *"Name or service not known"* ]]; then
 		if [[ "$IP_VERSION" == "4" ]]; then
 			READY="$(ping -4 -c1 "$DOMAIN" 2>&1)"
 			if [[ "$READY" == *"Address family for hostname not supported"* ]]; then
-				MODE=6
+				if [[ "$SET_MODE" == "yes" ]]; then
+					MODE=6
+				else
+					RESULT=-1
+				fi
 			fi
 		elif [[ "$IP_VERSION" == "6" ]]; then
 			READY="$(ping -6 -c1 "$DOMAIN" 2>&1)"
 			if [[ "$READY" == *"Address family for hostname not supported"* ]]; then
-				MODE=4
+				if [[ "$SET_MODE" == "yes" ]]; then
+					MODE=4
+				else
+					RESULT=-1
+				fi
 			fi
 		fi
 	else
@@ -448,20 +457,25 @@ if [[ "$CUSTOM_SERVER" != "False" ]]; then
 		CUSTOM_PORTS="$CUSTOM_PORTS-$CUSTOM_PORTS"
 	fi
 	MODE=4
-	if [[ "$IPV6_ONLY" == "True" ]]; then
+	if [[ "$FORCE_IPV6_ONLY" == "True" ]]; then
 		MODE=6
 	fi
-	domain_ipversion_check "$CUSTOM_SERVER" "$MODE"
-	if [[ "$MODE" == -1 ]]; then
+	if [[ "$FORCE_IPV4_ONLY" != "True" && "$FORCE_IPV6_ONLY" != "True" ]]; then
+		domain_ipversion_check "$CUSTOM_SERVER" "$MODE"
+	else
+		domain_ipversion_check "$CUSTOM_SERVER" "$MODE" yes
+	fi
+	if [[ "$MODE" == -1 || "$RESULT" == -1 ]]; then
 		echo "Error: Domain is unreachable"
 		cleanup False
 	else
+		ip_info "$MODE" ipinfo
 		iperf_test "$CUSTOM_SERVER" "$CUSTOM_PORTS" "$CUSTOM_SERVER" "Custom Server" $MODE
 	fi
 else
 	SERVERS_COUNT=${#SERVERS[*]}
 	SERVERS_COUNT=$(("$SERVERS_COUNT" / 6))
-	if [[ "$IPV4_ONLY" == "True" ]]; then
+	if [[ "$FORCE_IPV4_ONLY" == "True" ]]; then
 		ip_info 4 ipinfo
 		echo
 		echo "#IPv4 mode"
@@ -473,7 +487,7 @@ else
 			fi
 		done
 	fi
-	if [[ "$IPV6_ONLY" == "True" ]]; then
+	if [[ "$FORCE_IPV6_ONLY" == "True" ]]; then
 		ip_info 6 ipinfo
 		echo
 		echo "#IPv6 mode"
