@@ -344,6 +344,7 @@ function run_iperf(){
 	local IP_VERSION="$4"
 	local RECURSION="${5:-0}"
 	if [[ "$RECURSION" -ge 3 ]]; then
+		echo -en "\r\033[0K"
 		echo -n "Error: too many retries"
 		sleep 2
 		return 1
@@ -386,7 +387,7 @@ function iperf_test() {
 	local MODES=(s r)
 	for mode in "${MODES[@]}"; do
 		local SPEED
-		for ((j=1; 2>"$j"; j++)); do
+		for ((j=1; 3>"$j"; j++)); do
 			if [[ "$mode" == "s" ]]; then
 				echo -n "Send testing $PROVIDER | $LOCATION with IPv$IP_VERSION #$j"
 			elif [[ "$mode" == "r" ]]; then
@@ -457,7 +458,6 @@ if [[ "$CUSTOM_SERVER" != "False" ]]; then
 	else
 		iperf_test "$CUSTOM_SERVER" "$CUSTOM_PORTS" "$CUSTOM_SERVER" "Custom Server" $MODE
 	fi
-	
 else
 	SERVERS_COUNT=${#SERVERS[*]}
 	SERVERS_COUNT=$(("$SERVERS_COUNT" / 6))
