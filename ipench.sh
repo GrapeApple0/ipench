@@ -5,13 +5,25 @@ IPV4_ONLY="True"
 IPV6_ONLY="True"
 CUSTOM_SERVER="False"
 CUSTOM_PORTS="5201"
-while getopts '46c:p:' flag; do
-	case "${flag}" in
+REGION="N/A"
+while getopts '46c:p:r:' flag; do
+	case "$flag" in
 		4) IPV4_ONLY="True" && unset IPV6_ONLY ;;
 		6) IPV6_ONLY="True" && unset IPV4_ONLY ;;
 		c) CUSTOM_SERVER=${OPTARG};;
 		p) CUSTOM_PORTS=${OPTARG};;
+		r) 
+		case "$OPTARG" in 
+			na) REGION="North America" ;;
+			eu) REGION="Europe" ;;
+			asia) REGION="Asia" ;;
+			oceania) REGION="Oceania" ;;
+			sa) REGION="South America" ;;
+			*) echo "invalid region"; exit 1 ;;
+		esac
+		;;
 		:);;
+		\?) echo "invalid argument"; exit 1;;
 		*) exit 1 ;;
 	esac
 done
@@ -435,15 +447,29 @@ SERVERS=(
 	"speedtest.tyo11.jp.leaseweb.net" "5201-5210" "Leaseweb"  "Tokyo, Japan(10G)"               "Asia"          "v4|v6"
 	"speedtest.uztelecom.uz"          "5200-5209" "Uztelecom" "Tashkent, Uzbekistan(10G)"       "Asia"          "v4|v6"
 	"speedtest.sin1.sg.leaseweb.net"  "5201-5210" "Leaseweb"  "Singapore, Singapore(10G)"       "Asia"          "v4|v6"
+	"sgp.proof.ovh.net"               "5202-5210" "OVH"       "Singapore, Singapore(1G)"        "Asia"          "v4|v6"
 	"speedtest.novoserve.com"         "5201-5206" "Novoserve" "Amsterdam, Netherlands(40G)"     "Europe"        "v4|v6"
 	"lon.speedtest.clouvider.net"     "5200-5209" "Clouvider" "London, United Kingdom(10G)"     "Europe"        "v4|v6"
 	"lg.terrahost.com"                "9200-9240" "TerraHost" "Sandefjord, Norway(10G)"         "Europe"        "v4|v6"
 	"spd-icsrv.hostkey.com"           "5201-5210" "Hostkey"   "Reykjavik, Iceland(10G)"         "Europe"        "v4"
 	"paris.testdebit.info"            "9200-9240" "Bouygues"  "Paris, France(10G)"              "Europe"        "v4|v6"
 	"iperf3.moji.fr"                  "5200-5240" "Moji"      "Ile-de-France, France(100G)"     "Europe"        "v4|v6"
+	"speed.fiberby.dk"                "5201-5203" "Fiberby"   "Copenhagen, Denmark(10G)"        "Europe"        "v4|v6"
+	"se-speedt01.fre.nis.telia.net"   "5202-5210" "Telia"     "Stockholm, Sweden(10G)"          "Europe"        "v4"
+	"rbx.proof.ovh.net"               "5202-5210" "OVH"       "Roubaix, France(10G)"            "Europe"        "v4|v6"
+	"sbg.proof.ovh.net"               "5201-5210" "OVH"       "Strasbourg, France(1G)"          "Europe"        "v4|v6"
+	"bhs.proof.ovh.ca"                "5201-5210" "OVH"       "Beauharnois, Canada(1G)"         "North America" "v4|v6"
+	"ash.speedtest.clouvider.net"     "5200-5209" "Clouvider" "Ashburn, United States(10G)"     "North America" "v4|v6"
+	"atl.speedtest.clouvider.net"     "5200-5209" "Clouvider" "Atlanta, United States(10G)"     "North America" "v4|v6"
+	"dal.speedtest.clouvider.net"     "5200-5209" "Clouvider" "Dallas, United States(10G)"      "North America" "v4|v6"
 	"la.speedtest.clouvider.net"      "5200-5209" "Clouvider" "Los Angeles, United States(10G)" "North America" "v4|v6"
+	"nyc.speedtest.clouvider.net"     "5200-5209" "Clouvider" "New York, United States(10G)"    "North America" "v4|v6"
 	"speedtest.mia11.us.leaseweb.net" "5201-5210" "Leaseweb"  "Miami, United States(10G)"       "North America" "v4|v6"
+	"speedtest.sao1.edgoo.net"        "9204-9240" "Edgoo"     "Sao Paulo, Brazil(10G)"          "South America" "v4|v6"
+	"speedtest-cncp.grupogtd.com"     "5201-5210" "GTD"       "Santiago, Chile(10G)"            "South America" "v4|v6"
 	"speedtest.syd12.au.leaseweb.net" "5201-5210" "Leaseweb"  "Sydney, Australia(10G)"          "Oceania"       "v4|v6"
+	"syd.proof.ovh.net"               "5201-5210" "OVH"       "Sydney, Australia(1G)"           "Oceania"       "v4|v6"
+	"speedtest.lagoon.nc"             "5202-5210" "Lagoon"    "Noumea, New Caledonia(10G)"      "Oceania"       "v4|v6"
 )
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 echo "*                 iPench                 *"
@@ -483,7 +509,9 @@ else
 		printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
 		for ((i=0; "$SERVERS_COUNT">"$i"; i++)); do
 			if [[ "${SERVERS[$i*6+5]}" == *"v4"* ]]; then
-				iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 4
+				if [[ $REGION == "N/A" || $REGION == "${SERVERS[$i*6+4]}" ]]; then
+					iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 4
+				fi
 			fi
 		done
 	fi
@@ -495,7 +523,9 @@ else
 		printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
 		for ((i=0; "$SERVERS_COUNT">"$i"; i++)); do
 			if [[ "${SERVERS[$i*6+5]}" == *"v6"* ]]; then
-				iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 6
+				if [[ $REGION == "N/A" || $REGION == "${SERVERS[$i*6+4]}" ]]; then
+					iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 6
+				fi
 			fi
 		done
 	fi
