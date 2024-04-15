@@ -1,15 +1,15 @@
 #!/bin/bash
 PACKAGE_VERSION="1.0.0"
 unset IPV4_ONLY IPV6_ONLY CUSTOM_SERVER
-IPV4_ONLY="True"
-IPV6_ONLY="True"
-CUSTOM_SERVER="False"
+IPV4_ONLY="true"
+IPV6_ONLY="true"
+CUSTOM_SERVER="false"
 CUSTOM_PORTS="5201"
 REGION="N/A"
 while getopts '46c:p:r:' flag; do
 	case "$flag" in
-		4) IPV4_ONLY="True" && unset IPV6_ONLY ;;
-		6) IPV6_ONLY="True" && unset IPV4_ONLY ;;
+		4) IPV4_ONLY="true" && unset IPV6_ONLY ;;
+		6) IPV6_ONLY="true" && unset IPV4_ONLY ;;
 		c) CUSTOM_SERVER=${OPTARG};;
 		p) CUSTOM_PORTS=${OPTARG};;
 		r) 
@@ -27,6 +27,9 @@ while getopts '46c:p:r:' flag; do
 		*) exit 1 ;;
 	esac
 done
+
+IPV4_CHECK=$(ping -4 -c 1 -W 4 1.1.1.1 >/dev/null 2>&1 && echo true)
+IPV6_CHECK=$(ping -6 -c 1 -W 4 2606:4700:4700::1111 >/dev/null 2>&1 && echo true)
 
 function domain_ipversion_check() {
 	local DOMAIN="$1"
@@ -434,55 +437,62 @@ function iperf_test() {
 }
 
 function cleanup() {
-	local PRINT="${1:-True}"
-	if [[ "$PRINT" == "True" ]]; then
+	local PRINT="${1:-true}"
+	if [[ "$PRINT" == "true" ]]; then
 		echo -en "\r\033[0K"
 		echo "Cleaning up..."
 	fi
-	unset IPV4_ONLY IPV6_ONLY SERVERS SERVERS_COUNT CUSTOM_SERVER CUSTOM_PORTS SERVERS_COUNT MODE
+	unset IPV4_ONLY IPV6_ONLY SERVERS SERVERS_COUNT CUSTOM_SERVER CUSTOM_PORTS SERVERS_COUNT MODE IPV4_CHECK IPV6_CHECK
 	exit 0
 }
 
 SERVERS=(
 	# Asia
-	"speedtest.tyo11.jp.leaseweb.net" "5201-5210" "Leaseweb"  "Tokyo, Japan(10G)"                   "Asia"          "v4|v6"
-	"speedtest.sin1.sg.leaseweb.net"  "5201-5210" "Leaseweb"  "Singapore, Singapore(10G)"           "Asia"          "v4|v6"
-	"sgp.proof.ovh.net"               "5202-5210" "OVH"       "Singapore, Singapore(1G)"            "Asia"          "v4|v6"
-	"speedtest.uztelecom.uz"          "5200-5209" "Uztelecom" "Tashkent, Uzbekistan(10G)"           "Asia"          "v4|v6"
+	"speedtest.tyo11.jp.leaseweb.net" "5201-5210" "Leaseweb"    "Tokyo, Japan(10G)"                   "Asia"          "v4|v6"
+	"speedtest.hkg12.hk.leaseweb.net" "5201-5210" "Leaseweb"    "Hong Kong, China(10G)"               "Asia"          "v4|v6"
+	"lg-sg-sin.webhorizon.net"        "9201-9209" "Webhorizon"  "Singapore, Singapore(10G)"           "Asia"          "v4|v6"
+	"speedtest.sin1.sg.leaseweb.net"  "5201-5210" "Leaseweb"    "Singapore, Singapore(10G)"           "Asia"          "v4|v6"
+	"sgp.proof.ovh.net"               "5202-5210" "OVH"         "Singapore, Singapore(1G)"            "Asia"          "v4|v6"
+	"speedtest.uztelecom.uz"          "5200-5209" "Uztelecom"   "Tashkent, Uzbekistan(10G)"           "Asia"          "v4|v6"
 	# Europe
-	"spd-icsrv.hostkey.com"           "5201-5210" "Hostkey"   "Reykjavik, Iceland(10G)"             "Europe"        "v4"
-	"lg.terrahost.com"                "9200-9240" "TerraHost" "Sandefjord, Norway(10G)"             "Europe"        "v4|v6"
-	"se-speedt01.fre.nis.telia.net"   "5202-5210" "Telia"     "Stockholm, Sweden(10G)"              "Europe"        "v4"
-	"speed.fiberby.dk"                "5201-5203" "Fiberby"   "Copenhagen, Denmark(10G)"            "Europe"        "v4|v6"
-	"lon.speedtest.clouvider.net"     "5200-5209" "Clouvider" "London, United Kingdom(10G)"         "Europe"        "v4|v6"
-	"speedtest.novoserve.com"         "5201-5206" "Novoserve" "Amsterdam, Netherlands(40G)"         "Europe"        "v4|v6"
-	"paris.testdebit.info"            "9200-9240" "Bouygues"  "Paris, France(10G)"                  "Europe"        "v4|v6"
-	"iperf3.moji.fr"                  "5200-5240" "Moji"      "Ile-de-France, France(100G)"         "Europe"        "v4|v6"
-	"rbx.proof.ovh.net"               "5202-5210" "OVH"       "Roubaix, France(10G)"                "Europe"        "v4|v6"
-	"sbg.proof.ovh.net"               "5201-5210" "OVH"       "Strasbourg, France(1G)"              "Europe"        "v4|v6"
+	"spd-icsrv.hostkey.com"           "5201-5210" "Hostkey"     "Reykjavik, Iceland(10G)"             "Europe"        "v4"
+	"lg.terrahost.com"                "9200-9240" "TerraHost"   "Sandefjord, Norway(10G)"             "Europe"        "v4|v6"
+	"se-speedt01.fre.nis.telia.net"   "5202-5210" "Telia"       "Stockholm, Sweden(10G)"              "Europe"        "v4"
+	"speed.fiberby.dk"                "5201-5203" "Fiberby"     "Copenhagen, Denmark(10G)"            "Europe"        "v4|v6"
+	"lon.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "London, United Kingdom(10G)"         "Europe"        "v4|v6"
+	"speedtest.novoserve.com"         "5201-5206" "Novoserve"   "Amsterdam, Netherlands(40G)"         "Europe"        "v4|v6"
+	"paris.testdebit.info"            "9200-9240" "Bouygues"    "Paris, France(10G)"                  "Europe"        "v4|v6"
+	"iperf.par.as62000.net"           "9200-9240" "SERVERD"     "Paris, France(10G)"                  "Europe"        "v4|v6"
+	"iperf3.moji.fr"                  "5200-5240" "Moji"        "Paris, France(100G)"                 "Europe"        "v4|v6"
+	"scaleway.testdebit.info"         "9200-9240" "Scaleway"    "Vitry-sur-Seine, France(10G)"        "Europe"        "v4|v6"
+	"rbx.proof.ovh.net"               "5202-5210" "OVH"         "Roubaix, France(10G)"                "Europe"        "v4|v6"
+	"sbg.proof.ovh.net"               "5201-5210" "OVH"         "Strasbourg, France(1G)"              "Europe"        "v4|v6"
+	"fra.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "Frankfurt, Germany(10G)"             "Europe"        "v4|v6"
+	"speedtest.fra1.de.leaseweb.net"  "5201-5210" "Leaseweb"    "Frankfurt, Germany(10G)"             "Europe"        "v4|v6"
+	"speedtest.wtnet.de"              "5201-5210" "wilhelm.tel" "Frankfurt, Germany(40G)"             "Europe"        "v4|v6"
 	# North America
-	"bhs.proof.ovh.ca"                "5201-5210" "OVH"       "Beauharnois, Canada(1G)"             "North America" "v4|v6"
-	"speedtest.sfo12.us.leaseweb.net" "5201-5210" "Leaseweb"  "San Francisco, United States(10G)"   "North America" "v4|v6"
-	"speedtest.sea11.us.leaseweb.net" "5201-5210" "Leaseweb"  "Seattle, United States(10G)"         "North America" "v4|v6"
-	"la.speedtest.clouvider.net"      "5200-5209" "Clouvider" "Los Angeles, United States(10G)"     "North America" "v4|v6"
-	"speedtest.lax12.us.leaseweb.net" "5201-5210" "Leaseweb"  "Los Angeles, United States(10G)"     "North America" "v4|v6"
-	"speedtest.phx1.us.leaseweb.net"  "5201-5210" "Leaseweb"  "Phoenix, United States(10G)"         "North America" "v4|v6"
-	"dal.speedtest.clouvider.net"     "5200-5209" "Clouvider" "Dallas, United States(10G)"          "North America" "v4|v6"
-	"speedtest.dal13.us.leaseweb.net" "5201-5210" "Leaseweb"  "Dallas, United States(10G)"          "North America" "v4|v6"
-	"speedtest.chi11.us.leaseweb.net" "5201-5210" "Leaseweb"  "Chicago, United States(10G)"         "North America" "v4|v6"
-	"atl.speedtest.clouvider.net"     "5200-5209" "Clouvider" "Atlanta, United States(10G)"         "North America" "v4|v6"
-	"speedtest.mia11.us.leaseweb.net" "5201-5210" "Leaseweb"  "Miami, United States(10G)"           "North America" "v4|v6"
-	"ash.speedtest.clouvider.net"     "5200-5209" "Clouvider" "Ashburn, United States(10G)"         "North America" "v4|v6"
-	"speedtest.wdc2.us.leaseweb.net"  "5201-5210" "Leaseweb"  "Washington D.C., United States(10G)" "North America" "v4|v6"
-	"nyc.speedtest.clouvider.net"     "5200-5209" "Clouvider" "New York City, United States(10G)"   "North America" "v4|v6"
-	"speedtest.nyc1.us.leaseweb.net"  "5201-5210" "Leaseweb"  "New York City, United States(10G)"   "North America" "v4|v6"
+	"bhs.proof.ovh.ca"                "5201-5210" "OVH"         "Beauharnois, Canada(1G)"             "North America" "v4|v6"
+	"speedtest.sfo12.us.leaseweb.net" "5201-5210" "Leaseweb"    "San Francisco, United States(10G)"   "North America" "v4|v6"
+	"speedtest.sea11.us.leaseweb.net" "5201-5210" "Leaseweb"    "Seattle, United States(10G)"         "North America" "v4|v6"
+	"la.speedtest.clouvider.net"      "5200-5209" "Clouvider"   "Los Angeles, United States(10G)"     "North America" "v4|v6"
+	"speedtest.lax12.us.leaseweb.net" "5201-5210" "Leaseweb"    "Los Angeles, United States(10G)"     "North America" "v4|v6"
+	"speedtest.phx1.us.leaseweb.net"  "5201-5210" "Leaseweb"    "Phoenix, United States(10G)"         "North America" "v4|v6"
+	"dal.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "Dallas, United States(10G)"          "North America" "v4|v6"
+	"speedtest.dal13.us.leaseweb.net" "5201-5210" "Leaseweb"    "Dallas, United States(10G)"          "North America" "v4|v6"
+	"speedtest.chi11.us.leaseweb.net" "5201-5210" "Leaseweb"    "Chicago, United States(10G)"         "North America" "v4|v6"
+	"atl.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "Atlanta, United States(10G)"         "North America" "v4|v6"
+	"speedtest.mia11.us.leaseweb.net" "5201-5210" "Leaseweb"    "Miami, United States(10G)"           "North America" "v4|v6"
+	"ash.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "Ashburn, United States(10G)"         "North America" "v4|v6"
+	"speedtest.wdc2.us.leaseweb.net"  "5201-5210" "Leaseweb"    "Washington D.C., United States(10G)" "North America" "v4|v6"
+	"nyc.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "New York City, United States(10G)"   "North America" "v4|v6"
+	"speedtest.nyc1.us.leaseweb.net"  "5201-5210" "Leaseweb"    "New York City, United States(10G)"   "North America" "v4|v6"
 	# South America
-	"speedtest.sao1.edgoo.net"        "9204-9240" "Edgoo"     "Sao Paulo, Brazil(10G)"              "South America" "v4|v6"
-	"speedtest-cncp.grupogtd.com"     "5201-5210" "GTD"       "Santiago, Chile(10G)"                "South America" "v4|v6"
+	"speedtest.sao1.edgoo.net"        "9204-9240" "Edgoo"       "Sao Paulo, Brazil(10G)"              "South America" "v4|v6"
+	"speedtest-cncp.grupogtd.com"     "5201-5210" "GTD"         "Santiago, Chile(10G)"                "South America" "v4|v6"
 	# Oceania
-	"speedtest.syd12.au.leaseweb.net" "5201-5210" "Leaseweb"  "Sydney, Australia(10G)"              "Oceania"       "v4|v6"
-	"syd.proof.ovh.net"               "5201-5210" "OVH"       "Sydney, Australia(1G)"               "Oceania"       "v4|v6"
-	"speedtest.lagoon.nc"             "5202-5210" "Lagoon"    "Noumea, New Caledonia(10G)"          "Oceania"       "v4|v6"
+	"speedtest.syd12.au.leaseweb.net" "5201-5210" "Leaseweb"    "Sydney, Australia(10G)"              "Oceania"       "v4|v6"
+	"syd.proof.ovh.net"               "5201-5210" "OVH"         "Sydney, Australia(1G)"               "Oceania"       "v4|v6"
+	"speedtest.lagoon.nc"             "5202-5210" "Lagoon"      "Noumea, New Caledonia(10G)"          "Oceania"       "v4|v6"
 )
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 echo "*                 iPench                 *"
@@ -490,23 +500,23 @@ echo "*  Yet Another Network Benchmark Script  *"
 echo "*                ver$PACKAGE_VERSION                *"
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 trap cleanup INT
-if [[ "$CUSTOM_SERVER" != "False" ]]; then
+if [[ "$CUSTOM_SERVER" != false ]]; then
 	# TODO
 	if [[ "$CUSTOM_PORTS" != *"-"* ]]; then
 		CUSTOM_PORTS="$CUSTOM_PORTS-$CUSTOM_PORTS"
 	fi
 	MODE=4
-	if [[ "$IPV6_ONLY" == "True" ]]; then
+	if [[ "$IPV6_ONLY" == true ]]; then
 		MODE=6
 	fi
-	if [[ "$IPV4_ONLY" != "True" && "$IPV6_ONLY" != "True" ]]; then
+	if [[ "$IPV4_ONLY" != true && "$IPV6_ONLY" != true ]]; then
 		domain_ipversion_check "$CUSTOM_SERVER" "$MODE"
 	else
 		domain_ipversion_check "$CUSTOM_SERVER" "$MODE" yes
 	fi
 	if [[ "$MODE" == -1 || "$RESULT" == -1 ]]; then
 		echo "Error: Domain is unreachable"
-		cleanup False
+		cleanup false
 	else
 		ip_info "$MODE" ipinfo
 		iperf_test "$CUSTOM_SERVER" "$CUSTOM_PORTS" "$CUSTOM_SERVER" "Custom Server" $MODE
@@ -514,7 +524,7 @@ if [[ "$CUSTOM_SERVER" != "False" ]]; then
 else
 	SERVERS_COUNT=${#SERVERS[*]}
 	SERVERS_COUNT=$(("$SERVERS_COUNT" / 6))
-	if [[ "$IPV4_ONLY" == "True" ]]; then
+	if [[ "$IPV4_ONLY" == true && $IPV4_CHECK == true ]]; then
 		ip_info 4 ipinfo
 		echo
 		echo "#IPv4 mode"
@@ -528,7 +538,8 @@ else
 			fi
 		done
 	fi
-	if [[ "$IPV6_ONLY" == "True" ]]; then
+	ipversion_available_checker 6
+	if [[ "$IPV6_ONLY" == true && "$IPV6_CHECK" == true ]]; then
 		ip_info 6 ipinfo
 		echo
 		echo "#IPv6 mode"
@@ -544,4 +555,4 @@ else
 	fi
 fi
 
-cleanup False
+cleanup false
