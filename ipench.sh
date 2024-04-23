@@ -8,23 +8,29 @@ CUSTOM_PORTS="5201"
 REGION="N/A"
 while getopts '46c:p:r:' flag; do
 	case "$flag" in
-		4) IPV4_ONLY="true" && unset IPV6_ONLY ;;
-		6) IPV6_ONLY="true" && unset IPV4_ONLY ;;
-		c) CUSTOM_SERVER=${OPTARG};;
-		p) CUSTOM_PORTS=${OPTARG};;
-		r) 
-		case "$OPTARG" in 
-			na) REGION="North America" ;;
-			eu) REGION="Europe" ;;
-			asia) REGION="Asia" ;;
-			oceania) REGION="Oceania" ;;
-			sa) REGION="South America" ;;
-			*) echo "invalid region"; exit 1 ;;
+	4) IPV4_ONLY="true" && unset IPV6_ONLY ;;
+	6) IPV6_ONLY="true" && unset IPV4_ONLY ;;
+	c) CUSTOM_SERVER=${OPTARG} ;;
+	p) CUSTOM_PORTS=${OPTARG} ;;
+	r)
+		case "$OPTARG" in
+		na) REGION="North America" ;;
+		eu) REGION="Europe" ;;
+		asia) REGION="Asia" ;;
+		oceania) REGION="Oceania" ;;
+		sa) REGION="South America" ;;
+		*)
+			echo "invalid region"
+			exit 1
+			;;
 		esac
 		;;
-		:);;
-		\?) echo "invalid argument"; exit 1;;
-		*) exit 1 ;;
+	:) ;;
+	\?)
+		echo "invalid argument"
+		exit 1
+		;;
+	*) exit 1 ;;
 	esac
 done
 
@@ -62,7 +68,7 @@ function domain_ipversion_check() {
 	fi
 }
 
-function ip_info() {	
+function ip_info() {
 	declare -A countries=(
 		["af"]="Afghanistan"
 		["ax"]="Åland Islands"
@@ -313,12 +319,12 @@ function ip_info() {
 	local READY
 	if [[ "$IP_VERSION" == "4" ]]; then
 		READY="$(ping -4 -c 1 -W 4 1.1.1.1 >/dev/null 2>&1 && echo true || ping -4 -c 1 -W 4 45.11.45.11 >/dev/null 2>&1 && echo true)"
-		if ! $READY ; then
+		if ! $READY; then
 			return 1
 		fi
 	elif [[ "$IP_VERSION" == "6" ]]; then
 		READY="$(ping -6 -c 1 -W 4 2606:4700:4700::1111 >/dev/null 2>&1 && echo true || ping -6 -c 1 -W 4 2a09:: >/dev/null 2>&1 && echo true)"
-		if ! $READY ; then
+		if ! $READY; then
 			return 1
 		fi
 	fi
@@ -338,7 +344,7 @@ function ip_info() {
 	ORG="$(echo -e "$INFO" | sed 's/\s/\n/g' | sed 's/\\s/ /g' | grep \"org\": | head -1 | awk -F ":" '{print $2}' | awk '{print substr($0, 2, length($0) - 2)}')"
 	if [[ $MODE == "ipinfo" ]]; then
 		IPINFO="$(curl -s https://ipinfo.io/"$ADDR" | tr "{" '\n' | tr "," '\n' | tr "}" '\n' | sed 's/": "/":"/g' | sed 's/ /\\s/g'))"
-		ISP="$(echo -e "$IPINFO" | sed 's/\s/\n/g' | sed 's/\\s/ /g' | grep \"org\": | head -1 | awk -F ":" '{print $2}' | awk '{print substr($0, 2, length($0) - 2)}' | sed 's/^AS[0-9]* //' )"
+		ISP="$(echo -e "$IPINFO" | sed 's/\s/\n/g' | sed 's/\\s/ /g' | grep \"org\": | head -1 | awk -F ":" '{print $2}' | awk '{print substr($0, 2, length($0) - 2)}' | sed 's/^AS[0-9]* //')"
 		AS="$(echo -e "$IPINFO" | sed 's/\s/\n/g' | sed 's/\\s/ /g' | grep \"org\": | sed 's/"//g' | head -1 | awk -F ":" '{print $2}' | awk '{print $1}')"
 		COUNTRY="${countries[$(echo -e "$IPINFO" | sed 's/\s/\n/g' | sed 's/\\s/ /g' | grep \"country\": | head -1 | awk -F ":" '{print $2}' | awk '{print substr($0, 2, length($0) - 2)}' | awk '{print tolower($0)}')]}"
 		CITY="$(echo -e "$IPINFO" | sed 's/\s/\n/g' | sed 's/\\s/ /g' | grep \"city\": | head -1 | awk -F ":" '{print $2}' | awk '{print substr($0, 2, length($0) - 2)}')"
@@ -359,7 +365,7 @@ function ip_info() {
 	printf "%-10s: %s\n" "Location" "$CITY, $REGION"
 }
 
-function run_iperf(){
+function run_iperf() {
 	local SERVER="$1"
 	local PORTS="$2"
 	local PORT
@@ -382,14 +388,14 @@ function run_iperf(){
 		if [[ "$result" == *"the server is busy running a test"* ]]; then
 			echo -en "\r\033[0K"
 			echo -n "$PROVIDER | $LOCATION: Port $PORT is busy, retrying"
-			run_iperf "$SERVER" "$PORTS" "$MODE" "$IP_VERSION" $(("$RECURSION"+1))
+			run_iperf "$SERVER" "$PORTS" "$MODE" "$IP_VERSION" $(("$RECURSION" + 1))
 		elif [[ "$result" == *"unable to connect to server"* ]]; then
 			echo -en "\r\033[0K"
 			echo -n "$PROVIDER | $LOCATION: Error: unable to connect to server"
 			return 1
 		fi
 	elif [[ "$(echo "$result" | grep SUM | grep receiver | awk '{print $6 " " $7}')" == *"0.00 bits/sec"* ]]; then
-		run_iperf "$SERVER" "$PORTS" "$MODE" "$IP_VERSION" $(("$RECURSION"+1))
+		run_iperf "$SERVER" "$PORTS" "$MODE" "$IP_VERSION" $(("$RECURSION" + 1))
 	fi
 }
 
@@ -411,7 +417,7 @@ function iperf_test() {
 	local MODES=(s r)
 	for mode in "${MODES[@]}"; do
 		local SPEED
-		for ((j=1; 3>"$j"; j++)); do
+		for ((j = 1; 3 > "$j"; j++)); do
 			if [[ "$mode" == "s" ]]; then
 				echo -n "Send testing $PROVIDER | $LOCATION with IPv$IP_VERSION #$j"
 			elif [[ "$mode" == "r" ]]; then
@@ -448,51 +454,51 @@ function cleanup() {
 
 SERVERS=(
 	# Asia
-	"speedtest.tyo11.jp.leaseweb.net" "5201-5210" "Leaseweb"    "Tokyo, Japan(10G)"                   "Asia"          "v4|v6"
-	"speedtest.hkg12.hk.leaseweb.net" "5201-5210" "Leaseweb"    "Hong Kong, China(10G)"               "Asia"          "v4|v6"
-	"lg-sg-sin.webhorizon.net"        "9201-9209" "Webhorizon"  "Singapore, Singapore(10G)"           "Asia"          "v4|v6"
-	"speedtest.sin1.sg.leaseweb.net"  "5201-5210" "Leaseweb"    "Singapore, Singapore(10G)"           "Asia"          "v4|v6"
-	"sgp.proof.ovh.net"               "5202-5210" "OVH"         "Singapore, Singapore(1G)"            "Asia"          "v4|v6"
-	"speedtest.uztelecom.uz"          "5200-5209" "Uztelecom"   "Tashkent, Uzbekistan(10G)"           "Asia"          "v4|v6"
+	"speedtest.tyo11.jp.leaseweb.net" "5201-5210" "Leaseweb" "Tokyo, Japan(10G)" "Asia" "v4|v6"
+	"speedtest.hkg12.hk.leaseweb.net" "5201-5210" "Leaseweb" "Hong Kong, China(10G)" "Asia" "v4|v6"
+	"lg-sg-sin.webhorizon.net" "9201-9209" "Webhorizon" "Singapore, Singapore(10G)" "Asia" "v4|v6"
+	"speedtest.sin1.sg.leaseweb.net" "5201-5210" "Leaseweb" "Singapore, Singapore(10G)" "Asia" "v4|v6"
+	"sgp.proof.ovh.net" "5202-5210" "OVH" "Singapore, Singapore(1G)" "Asia" "v4|v6"
+	"speedtest.uztelecom.uz" "5200-5209" "Uztelecom" "Tashkent, Uzbekistan(10G)" "Asia" "v4|v6"
 	# Europe
-	"spd-icsrv.hostkey.com"           "5201-5210" "Hostkey"     "Reykjavik, Iceland(10G)"             "Europe"        "v4"
-	"lg.terrahost.com"                "9200-9240" "TerraHost"   "Sandefjord, Norway(10G)"             "Europe"        "v4|v6"
-	"se-speedt01.fre.nis.telia.net"   "5202-5210" "Telia"       "Stockholm, Sweden(10G)"              "Europe"        "v4"
-	"speed.fiberby.dk"                "5201-5203" "Fiberby"     "Copenhagen, Denmark(10G)"            "Europe"        "v4|v6"
-	"lon.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "London, United Kingdom(10G)"         "Europe"        "v4|v6"
-	"speedtest.novoserve.com"         "5201-5206" "Novoserve"   "Amsterdam, Netherlands(40G)"         "Europe"        "v4|v6"
-	"paris.testdebit.info"            "9200-9240" "Bouygues"    "Paris, France(10G)"                  "Europe"        "v4|v6"
-	"iperf.par.as62000.net"           "9200-9240" "SERVERD"     "Paris, France(10G)"                  "Europe"        "v4|v6"
-	"iperf3.moji.fr"                  "5200-5240" "Moji"        "Paris, France(100G)"                 "Europe"        "v4|v6"
-	"scaleway.testdebit.info"         "9200-9240" "Scaleway"    "Vitry-sur-Seine, France(10G)"        "Europe"        "v4|v6"
-	"rbx.proof.ovh.net"               "5202-5210" "OVH"         "Roubaix, France(10G)"                "Europe"        "v4|v6"
-	"sbg.proof.ovh.net"               "5201-5210" "OVH"         "Strasbourg, France(1G)"              "Europe"        "v4|v6"
-	"fra.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "Frankfurt, Germany(10G)"             "Europe"        "v4|v6"
-	"speedtest.fra1.de.leaseweb.net"  "5201-5210" "Leaseweb"    "Frankfurt, Germany(10G)"             "Europe"        "v4|v6"
-	"speedtest.wtnet.de"              "5201-5210" "wilhelm.tel" "Frankfurt, Germany(40G)"             "Europe"        "v4|v6"
+	"spd-icsrv.hostkey.com" "5201-5210" "Hostkey" "Reykjavik, Iceland(10G)" "Europe" "v4"
+	"lg.terrahost.com" "9200-9240" "TerraHost" "Sandefjord, Norway(10G)" "Europe" "v4|v6"
+	"se-speedt01.fre.nis.telia.net" "5202-5210" "Telia" "Stockholm, Sweden(10G)" "Europe" "v4"
+	"speed.fiberby.dk" "5201-5203" "Fiberby" "Copenhagen, Denmark(10G)" "Europe" "v4|v6"
+	"lon.speedtest.clouvider.net" "5200-5209" "Clouvider" "London, United Kingdom(10G)" "Europe" "v4|v6"
+	"speedtest.novoserve.com" "5201-5206" "Novoserve" "Amsterdam, Netherlands(40G)" "Europe" "v4|v6"
+	"paris.testdebit.info" "9200-9240" "Bouygues" "Paris, France(10G)" "Europe" "v4|v6"
+	"iperf.par.as62000.net" "9200-9240" "SERVERD" "Paris, France(10G)" "Europe" "v4|v6"
+	"iperf3.moji.fr" "5200-5240" "Moji" "Paris, France(100G)" "Europe" "v4|v6"
+	"scaleway.testdebit.info" "9200-9240" "Scaleway" "Vitry-sur-Seine, France(10G)" "Europe" "v4|v6"
+	"rbx.proof.ovh.net" "5202-5210" "OVH" "Roubaix, France(10G)" "Europe" "v4|v6"
+	"sbg.proof.ovh.net" "5201-5210" "OVH" "Strasbourg, France(1G)" "Europe" "v4|v6"
+	"fra.speedtest.clouvider.net" "5200-5209" "Clouvider" "Frankfurt, Germany(10G)" "Europe" "v4|v6"
+	"speedtest.fra1.de.leaseweb.net" "5201-5210" "Leaseweb" "Frankfurt, Germany(10G)" "Europe" "v4|v6"
+	"speedtest.wtnet.de" "5201-5210" "wilhelm.tel" "Frankfurt, Germany(40G)" "Europe" "v4|v6"
 	# North America
-	"bhs.proof.ovh.ca"                "5201-5210" "OVH"         "Beauharnois, Canada(1G)"             "North America" "v4|v6"
-	"speedtest.sfo12.us.leaseweb.net" "5201-5210" "Leaseweb"    "San Francisco, United States(10G)"   "North America" "v4|v6"
-	"speedtest.sea11.us.leaseweb.net" "5201-5210" "Leaseweb"    "Seattle, United States(10G)"         "North America" "v4|v6"
-	"la.speedtest.clouvider.net"      "5200-5209" "Clouvider"   "Los Angeles, United States(10G)"     "North America" "v4|v6"
-	"speedtest.lax12.us.leaseweb.net" "5201-5210" "Leaseweb"    "Los Angeles, United States(10G)"     "North America" "v4|v6"
-	"speedtest.phx1.us.leaseweb.net"  "5201-5210" "Leaseweb"    "Phoenix, United States(10G)"         "North America" "v4|v6"
-	"dal.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "Dallas, United States(10G)"          "North America" "v4|v6"
-	"speedtest.dal13.us.leaseweb.net" "5201-5210" "Leaseweb"    "Dallas, United States(10G)"          "North America" "v4|v6"
-	"speedtest.chi11.us.leaseweb.net" "5201-5210" "Leaseweb"    "Chicago, United States(10G)"         "North America" "v4|v6"
-	"atl.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "Atlanta, United States(10G)"         "North America" "v4|v6"
-	"speedtest.mia11.us.leaseweb.net" "5201-5210" "Leaseweb"    "Miami, United States(10G)"           "North America" "v4|v6"
-	"ash.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "Ashburn, United States(10G)"         "North America" "v4|v6"
-	"speedtest.wdc2.us.leaseweb.net"  "5201-5210" "Leaseweb"    "Washington D.C., United States(10G)" "North America" "v4|v6"
-	"nyc.speedtest.clouvider.net"     "5200-5209" "Clouvider"   "New York City, United States(10G)"   "North America" "v4|v6"
-	"speedtest.nyc1.us.leaseweb.net"  "5201-5210" "Leaseweb"    "New York City, United States(10G)"   "North America" "v4|v6"
+	"bhs.proof.ovh.ca" "5201-5210" "OVH" "Beauharnois, Canada(1G)" "North America" "v4|v6"
+	"speedtest.sfo12.us.leaseweb.net" "5201-5210" "Leaseweb" "San Francisco, United States(10G)" "North America" "v4|v6"
+	"speedtest.sea11.us.leaseweb.net" "5201-5210" "Leaseweb" "Seattle, United States(10G)" "North America" "v4|v6"
+	"la.speedtest.clouvider.net" "5200-5209" "Clouvider" "Los Angeles, United States(10G)" "North America" "v4|v6"
+	"speedtest.lax12.us.leaseweb.net" "5201-5210" "Leaseweb" "Los Angeles, United States(10G)" "North America" "v4|v6"
+	"speedtest.phx1.us.leaseweb.net" "5201-5210" "Leaseweb" "Phoenix, United States(10G)" "North America" "v4|v6"
+	"dal.speedtest.clouvider.net" "5200-5209" "Clouvider" "Dallas, United States(10G)" "North America" "v4|v6"
+	"speedtest.dal13.us.leaseweb.net" "5201-5210" "Leaseweb" "Dallas, United States(10G)" "North America" "v4|v6"
+	"speedtest.chi11.us.leaseweb.net" "5201-5210" "Leaseweb" "Chicago, United States(10G)" "North America" "v4|v6"
+	"atl.speedtest.clouvider.net" "5200-5209" "Clouvider" "Atlanta, United States(10G)" "North America" "v4|v6"
+	"speedtest.mia11.us.leaseweb.net" "5201-5210" "Leaseweb" "Miami, United States(10G)" "North America" "v4|v6"
+	"ash.speedtest.clouvider.net" "5200-5209" "Clouvider" "Ashburn, United States(10G)" "North America" "v4|v6"
+	"speedtest.wdc2.us.leaseweb.net" "5201-5210" "Leaseweb" "Washington D.C., United States(10G)" "North America" "v4|v6"
+	"nyc.speedtest.clouvider.net" "5200-5209" "Clouvider" "New York City, United States(10G)" "North America" "v4|v6"
+	"speedtest.nyc1.us.leaseweb.net" "5201-5210" "Leaseweb" "New York City, United States(10G)" "North America" "v4|v6"
 	# South America
-	"speedtest.sao1.edgoo.net"        "9204-9240" "Edgoo"       "Sao Paulo, Brazil(10G)"              "South America" "v4|v6"
-	"speedtest-cncp.grupogtd.com"     "5201-5210" "GTD"         "Santiago, Chile(10G)"                "South America" "v4|v6"
+	"speedtest.sao1.edgoo.net" "9204-9240" "Edgoo" "Sao Paulo, Brazil(10G)" "South America" "v4|v6"
+	"speedtest-cncp.grupogtd.com" "5201-5210" "GTD" "Santiago, Chile(10G)" "South America" "v4|v6"
 	# Oceania
-	"speedtest.syd12.au.leaseweb.net" "5201-5210" "Leaseweb"    "Sydney, Australia(10G)"              "Oceania"       "v4|v6"
-	"syd.proof.ovh.net"               "5201-5210" "OVH"         "Sydney, Australia(1G)"               "Oceania"       "v4|v6"
-	"speedtest.lagoon.nc"             "5202-5210" "Lagoon"      "Noumea, New Caledonia(10G)"          "Oceania"       "v4|v6"
+	"speedtest.syd12.au.leaseweb.net" "5201-5210" "Leaseweb" "Sydney, Australia(10G)" "Oceania" "v4|v6"
+	"syd.proof.ovh.net" "5201-5210" "OVH" "Sydney, Australia(1G)" "Oceania" "v4|v6"
+	"speedtest.lagoon.nc" "5202-5210" "Lagoon" "Noumea, New Caledonia(10G)" "Oceania" "v4|v6"
 )
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 echo "*                 iPench                 *"
@@ -530,10 +536,10 @@ else
 		echo "#IPv4 mode"
 		echo --------------------------
 		printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
-		for ((i=0; "$SERVERS_COUNT">"$i"; i++)); do
-			if [[ "${SERVERS[$i*6+5]}" == *"v4"* ]]; then
-				if [[ $REGION == "N/A" || $REGION == "${SERVERS[$i*6+4]}" ]]; then
-					iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 4
+		for ((i = 0; "$SERVERS_COUNT" > "$i"; i++)); do
+			if [[ "${SERVERS[$i * 6 + 5]}" == *"v4"* ]]; then
+				if [[ $REGION == "N/A" || $REGION == "${SERVERS[$i * 6 + 4]}" ]]; then
+					iperf_test "${SERVERS[$i * 6]}" "${SERVERS[$i * 6 + 1]}" "${SERVERS[$i * 6 + 2]}" "${SERVERS[$i * 6 + 3]}" 4
 				fi
 			fi
 		done
@@ -545,10 +551,10 @@ else
 		echo "#IPv6 mode"
 		echo --------------------------
 		printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
-		for ((i=0; "$SERVERS_COUNT">"$i"; i++)); do
-			if [[ "${SERVERS[$i*6+5]}" == *"v6"* ]]; then
-				if [[ $REGION == "N/A" || $REGION == "${SERVERS[$i*6+4]}" ]]; then
-					iperf_test "${SERVERS[$i*6]}" "${SERVERS[$i*6+1]}" "${SERVERS[$i*6+2]}" "${SERVERS[$i*6+3]}" 6
+		for ((i = 0; "$SERVERS_COUNT" > "$i"; i++)); do
+			if [[ "${SERVERS[$i * 6 + 5]}" == *"v6"* ]]; then
+				if [[ $REGION == "N/A" || $REGION == "${SERVERS[$i * 6 + 4]}" ]]; then
+					iperf_test "${SERVERS[$i * 6]}" "${SERVERS[$i * 6 + 1]}" "${SERVERS[$i * 6 + 2]}" "${SERVERS[$i * 6 + 3]}" 6
 				fi
 			fi
 		done
