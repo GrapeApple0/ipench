@@ -549,7 +549,6 @@ else
 			fi
 		done
 	fi
-	ipversion_available_checker 6
 	if [[ "$IPV6_ONLY" == true && "$IPV6_CHECK" == true ]]; then
 		ip_info 6 ipinfo
 		echo
