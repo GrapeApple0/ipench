@@ -15,10 +15,11 @@ while getopts '46c:p:r:' flag; do
 	r)
 		case "$OPTARG" in
 		na) REGION="North America" ;;
-		eu) REGION="Europe" ;;
+		europe) REGION="Europe" ;;
 		asia) REGION="Asia" ;;
 		oceania) REGION="Oceania" ;;
 		sa) REGION="South America" ;;
+		africa) REGION="Africa" ;;
 		*)
 			echo "invalid region"
 			exit 1
@@ -460,6 +461,10 @@ SERVERS=(
 	"speedtest.sin1.sg.leaseweb.net"  "5201-5210" "Leaseweb"   "Singapore, Singapore(10G)" "Asia" "v4|v6"
 	"sgp.proof.ovh.net"               "5202-5210" "OVH"        "Singapore, Singapore(1G)"  "Asia" "v4|v6"
 	"speedtest.uztelecom.uz"          "5200-5209" "Uztelecom"  "Tashkent, Uzbekistan(10G)" "Asia" "v4|v6"
+	# Africa
+	"speedtestfl.telecom.mu"   "5201-5209" "Mauritius Telecom" "Floreal, Mauritius(1G)"    "Africa" "v4"
+	"speedtest.telecom.mu"     "5201-5209" "Mauritius Telecom" "Port Louis, Mauritius(1G)" "Africa" "v4"
+	"speedtestrh.telecom.mu"   "5201-5209" "Mauritius Telecom" "Rose Hill, Mauritius(1G)"  "Africa" "v4"
 	# Europe
 	"spd-icsrv.hostkey.com"          "5201-5210" "Hostkey"    "Reykjavik, Iceland(10G)"      "Europe" "v4"
 	"lg.terrahost.com"               "9200-9240" "TerraHost"  "Sandefjord, Norway(10G)"      "Europe" "v4|v6"
