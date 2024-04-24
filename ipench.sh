@@ -380,9 +380,9 @@ function run_iperf() {
 		return 1
 	fi
 	if [[ "$MODE" == "s" ]]; then
-		result=$(timeout 20 iperf3 -c "$SERVER" -p "$PORT" -P 8 -"$IP_VERSION" 2>&1)
+		result=$(timeout 30 iperf3 -c "$SERVER" -p "$PORT" -P 8 -"$IP_VERSION" 2>&1)
 	elif [[ "$MODE" == "r" ]]; then
-		result=$(timeout 20 iperf3 -c "$SERVER" -p "$PORT" -P 8 -R -"$IP_VERSION" 2>&1)
+		result=$(timeout 30 iperf3 -c "$SERVER" -p "$PORT" -P 8 -R -"$IP_VERSION" 2>&1)
 	fi
 	if [[ "$result" == *"error"* ]]; then
 		if [[ "$result" == *"the server is busy running a test"* ]]; then
