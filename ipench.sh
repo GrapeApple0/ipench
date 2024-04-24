@@ -477,7 +477,7 @@ SERVERS=(
 	"iperf3.moji.fr"                 "5200-5240" "Moji"       "Paris, France(100G)"          "Europe" "v4|v6"
 	"scaleway.testdebit.info"        "9200-9240" "Scaleway"   "Vitry-sur-Seine, France(10G)" "Europe" "v4|v6"
 	"rbx.proof.ovh.net"              "5202-5210" "OVH"        "Roubaix, France(10G)"         "Europe" "v4|v6"
-	"sbg.proof.ovh.net"              "5201-5210" "OVH"        "Strasbourg, France(1G)"       "Europe" "v4|v6"
+	"sbg.proof.ovh.net"              "5201-5210" "OVH"        "Strasbourg, France(10G)"       "Europe" "v4|v6"
 	"fra.speedtest.clouvider.net"    "5200-5209" "Clouvider"  "Frankfurt, Germany(10G)"      "Europe" "v4|v6"
 	"speedtest.fra1.de.leaseweb.net" "5201-5210" "Leaseweb"   "Frankfurt, Germany(10G)"      "Europe" "v4|v6"
 	"speedtest.wtnet.de"             "5201-5210" "wilhelm.tel" "Frankfurt, Germany(40G)"     "Europe" "v4|v6"
