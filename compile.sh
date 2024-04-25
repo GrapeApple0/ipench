@@ -3,7 +3,7 @@
 mkdir tmp
 mkdir bin
 git clone https://github.com/esnet/iperf.git tmp/base
-ARCHS=("x86_64-linux-gnu" "arm-linux-gnueabi" "arm-linux-gnueabihf" "aarch64-linux-gnu")
+ARCHS=("arm-linux-gnueabi" "arm-linux-gnueabihf" "aarch64-linux-gnu")
 for arch in "${ARCHS[@]}"; do
 	cp -R tmp/base tmp/"$arch"
 	sudo docker run --rm -v "$(pwd)"/tmp/"$arch":/workdir \
@@ -11,9 +11,19 @@ for arch in "${ARCHS[@]}"; do
 				-e CXXFLAGS=--static \
 				-e CPPFLAGS=--static \
 				-e LDFLAGS=--static multiarch/crossbuild bash -c './configure --disable-shared --enable-static --enable-static-bin && make -j$(nproc) && make install'
-	BIN=$(echo "$arch" | sed 's/-linux-gnueabihf/v7l/' | sed 's/-linux-gnueabi//' | sed 's/-linux-gnu//' | sed 's/x86_64/x64/')
+	BIN=$(echo "$arch" | sed 's/-linux-gnueabihf/v7l/' | sed 's/-linux-gnueabi//' | sed 's/-linux-gnu//')
 	cp tmp/"$arch"/src/iperf3 bin/iperf-"$BIN"
 done
+
+cp -R tmp/base tmp/x86_64
+cd tmp/x86_64
+sudo ./configure --disable-shared --enable-static --enable-static-bin \
+		CXXFLAGS="--static" \
+		CPPFLAGS="--static"
+sudo make -j$(nproc)
+cd ../../
+cp tmp/x86_64/src/iperf3 bin/iperf-x64
+
 cp -R tmp/base tmp/i386
 cd tmp/i386
 sudo ./configure --disable-shared --enable-static --enable-static-bin --host=i686-linux-gnu --build=i686-linux-gnu \
