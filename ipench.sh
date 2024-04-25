@@ -38,6 +38,34 @@ done
 IPV4_CHECK=$(ping -4 -c 1 -W 4 1.1.1.1 >/dev/null 2>&1 && echo true)
 IPV6_CHECK=$(ping -6 -c 1 -W 4 2606:4700:4700::1111 >/dev/null 2>&1 && echo true)
 
+ARCH=$(uname -m)
+if [[ $ARCH = *x86_64* ]]; then
+	ARCH="x64"
+elif [[ $ARCH = *i?86* ]]; then
+	ARCH="x86"
+elif [[ $ARCH = *aarch* || $ARCH = *arm* ]]; then
+	KERNEL_BIT=$(getconf LONG_BIT)
+	if [[ $KERNEL_BIT = *64* ]]; then
+		ARCH="aarch64"
+	else
+		ARCH="arm"
+	fi
+else
+	echo -e "This machine's architecture is not supported."
+	exit 1
+fi
+
+IPERF_PATH=$(which iperf3 2>/dev/null)
+if [[ $IPERF_PATH == "" || $IPERF_PATH == *"not found"* ]]; then
+	if [ -d "/tmp/ipench" ]; then
+		rm -rf /tmp/ipench
+	fi
+	mkdir -p /tmp/ipench
+	curl -sL https://raw.githubusercontent.com/GrapeApple0/ipench/main/bin/iperf-$ARCH -o /tmp/ipench/iperf3
+	chmod +x /tmp/ipench/iperf3
+	IPERF_PATH="/tmp/ipench/iperf3"
+fi
+
 function domain_ipversion_check() {
 	local DOMAIN="$1"
 	local IP_VERSION="$2"
@@ -381,9 +409,9 @@ function run_iperf() {
 		return 1
 	fi
 	if [[ "$MODE" == "s" ]]; then
-		result=$(timeout 30 iperf3 -c "$SERVER" -p "$PORT" -P 8 -"$IP_VERSION" 2>&1)
+		result=$(timeout 30 "$IPERF_PATH" -c "$SERVER" -p "$PORT" -P 8 -"$IP_VERSION" 2>&1)
 	elif [[ "$MODE" == "r" ]]; then
-		result=$(timeout 30 iperf3 -c "$SERVER" -p "$PORT" -P 8 -R -"$IP_VERSION" 2>&1)
+		result=$(timeout 30 "$IPERF_PATH" -c "$SERVER" -p "$PORT" -P 8 -R -"$IP_VERSION" 2>&1)
 	fi
 	if [[ "$result" == *"error"* ]]; then
 		if [[ "$result" == *"the server is busy running a test"* ]]; then
@@ -449,6 +477,7 @@ function cleanup() {
 		echo -en "\r\033[0K"
 		echo "Cleaning up..."
 	fi
+	rm -rf /tmp/ipench
 	unset IPV4_ONLY IPV6_ONLY SERVERS SERVERS_COUNT CUSTOM_SERVER CUSTOM_PORTS SERVERS_COUNT MODE IPV4_CHECK IPV6_CHECK
 	exit 0
 }
