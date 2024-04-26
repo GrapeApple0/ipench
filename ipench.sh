@@ -6,7 +6,9 @@ IPV6_ONLY="true"
 CUSTOM_SERVER="false"
 CUSTOM_PORTS="5201"
 REGION="N/A"
-while getopts '46c:p:r:' flag; do
+DEBUG="false"
+
+while getopts '46c:p:r:d' flag; do
 	case "$flag" in
 	4) IPV4_ONLY="true" && unset IPV6_ONLY ;;
 	6) IPV6_ONLY="true" && unset IPV4_ONLY ;;
@@ -26,6 +28,7 @@ while getopts '46c:p:r:' flag; do
 			;;
 		esac
 		;;
+	d) DEBUG="true";;
 	:) ;;
 	\?)
 		echo "invalid argument"
@@ -48,7 +51,7 @@ elif [[ $ARCH = *aarch* || $ARCH = *arm* ]]; then
 	if [[ $KERNEL_BIT = *64* ]]; then
 		ARCH="aarch64"
 	else
-		ARCH="arm"
+		ARCH="armv7l"
 	fi
 else
 	echo -e "This machine's architecture is not supported."
@@ -61,10 +64,18 @@ if [[ $IPERF_PATH == "" || $IPERF_PATH == *"not found"* ]]; then
 		rm -rf /tmp/ipench
 	fi
 	mkdir -p /tmp/ipench
-	curl -sL https://raw.githubusercontent.com/GrapeApple0/ipench/main/bin/iperf-$ARCH -o /tmp/ipench/iperf3
+	curl -sL https://raw.githubusercontent.com/GrapeApple0/ipench/main/bin/iperf-x86 -o /tmp/ipench/iperf3
 	chmod +x /tmp/ipench/iperf3
 	IPERF_PATH="/tmp/ipench/iperf3"
 fi
+
+function clear_line() {
+	if [[ "$DEBUG" == "false" ]]; then
+		echo -en "\r\033[0K"
+	else 
+		echo
+	fi
+}
 
 function domain_ipversion_check() {
 	local DOMAIN="$1"
@@ -403,7 +414,7 @@ function run_iperf() {
 	local IP_VERSION="$4"
 	local RECURSION="${5:-0}"
 	if [[ "$RECURSION" -ge 3 ]]; then
-		echo -en "\r\033[0K"
+		clear_line
 		echo -n "Error: too many retries"
 		sleep 2
 		return 1
@@ -413,13 +424,16 @@ function run_iperf() {
 	elif [[ "$MODE" == "r" ]]; then
 		result=$(timeout 30 "$IPERF_PATH" -c "$SERVER" -p "$PORT" -P 8 -R -"$IP_VERSION" 2>&1)
 	fi
+	if [[ $DEBUG == "true" ]]; then
+		echo "$result"
+	fi
 	if [[ "$result" == *"error"* ]]; then
 		if [[ "$result" == *"the server is busy running a test"* ]]; then
-			echo -en "\r\033[0K"
+			clear_line
 			echo -n "$PROVIDER | $LOCATION: Port $PORT is busy, retrying"
 			run_iperf "$SERVER" "$PORTS" "$MODE" "$IP_VERSION" $(("$RECURSION" + 1))
 		elif [[ "$result" == *"unable to connect to server"* ]]; then
-			echo -en "\r\033[0K"
+			clear_line
 			echo -n "$PROVIDER | $LOCATION: Error: unable to connect to server"
 			return 1
 		fi
@@ -455,7 +469,7 @@ function iperf_test() {
 			if ! run_iperf "$SERVER" "$PORTS" "$mode" "$IP_VERSION"; then
 				sleep 2
 			fi
-			echo -en "\r\033[0K"
+			clear_line
 			if [[ "$result" == *"receiver"* && "$result" != *"0.00 bits/sec"* ]]; then
 				SPEED=$(echo "$result" | grep SUM | grep receiver | awk '{print $6 " " $7}')
 			else
@@ -474,7 +488,7 @@ function iperf_test() {
 function cleanup() {
 	local PRINT="${1:-true}"
 	if [[ "$PRINT" == "true" ]]; then
-		echo -en "\r\033[0K"
+		clear_line
 		echo "Cleaning up..."
 	fi
 	rm -rf /tmp/ipench
@@ -540,6 +554,10 @@ echo "*  Yet Another Network Benchmark Script  *"
 echo "*                ver$PACKAGE_VERSION                *"
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 trap cleanup INT
+if [[ $DEBUG == "true" ]]; then
+	cat /etc/os-release | grep NAME=
+	echo "Arch:$ARCH"
+fi
 if [[ "$CUSTOM_SERVER" != false ]]; then
 	# TODO
 	if [[ "$CUSTOM_PORTS" != *"-"* ]]; then
