@@ -482,7 +482,7 @@ function iperf_test() {
 			RECV_SPEED="$SPEED"
 		fi
 	done
-	printf "%-25s | %-35s | %-15s | %-15s | %-15s\n" "$PROVIDER" "$LOCATION" "$SEND_SPEED" "$RECV_SPEED" "$LATENCY ms"
+	printf "%-20s | %-35s | %-15s | %-15s | %-15s\n" "$PROVIDER" "$LOCATION" "$SEND_SPEED" "$RECV_SPEED" "$LATENCY ms"
 }
 
 function cleanup() {
@@ -554,10 +554,6 @@ echo "*  Yet Another Network Benchmark Script  *"
 echo "*                ver$PACKAGE_VERSION                *"
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 trap cleanup INT
-if [[ $DEBUG == "true" ]]; then
-	cat /etc/os-release | grep NAME=
-	echo "Arch:$ARCH"
-fi
 if [[ "$CUSTOM_SERVER" != false ]]; then
 	# TODO
 	if [[ "$CUSTOM_PORTS" != *"-"* ]]; then
@@ -587,7 +583,7 @@ else
 		echo
 		echo "#IPv4 mode"
 		echo --------------------------
-		printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
+		printf "%-20s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
 		for ((i = 0; "$SERVERS_COUNT" > "$i"; i++)); do
 			if [[ "${SERVERS[$i * 6 + 5]}" == *"v4"* ]]; then
 				if [[ $REGION == "N/A" || $REGION == "${SERVERS[$i * 6 + 4]}" ]]; then
@@ -601,7 +597,7 @@ else
 		echo
 		echo "#IPv6 mode"
 		echo --------------------------
-		printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
+		printf "%-20s | %-35s | %-15s | %-15s | %-15s\n" "Provider" "Location(Port Speed)" "Send Speed" "Recv Speed" "Ping"
 		for ((i = 0; "$SERVERS_COUNT" > "$i"; i++)); do
 			if [[ "${SERVERS[$i * 6 + 5]}" == *"v6"* ]]; then
 				if [[ $REGION == "N/A" || $REGION == "${SERVERS[$i * 6 + 4]}" ]]; then
