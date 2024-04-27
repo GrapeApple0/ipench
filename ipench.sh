@@ -482,7 +482,7 @@ function iperf_test() {
 			RECV_SPEED="$SPEED"
 		fi
 	done
-	printf "%-15s | %-35s | %-15s | %-15s | %-15s\n" "$PROVIDER" "$LOCATION" "$SEND_SPEED" "$RECV_SPEED" "$LATENCY ms"
+	printf "%-25s | %-35s | %-15s | %-15s | %-15s\n" "$PROVIDER" "$LOCATION" "$SEND_SPEED" "$RECV_SPEED" "$LATENCY ms"
 }
 
 function cleanup() {
