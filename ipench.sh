@@ -7,13 +7,14 @@ CUSTOM_SERVER="false"
 CUSTOM_PORTS="5201"
 REGION="N/A"
 DEBUG="false"
-
-while getopts '46c:p:r:d' flag; do
+FULL="false"
+while getopts '46c:p:r:df' flag; do
 	case "$flag" in
 	4) IPV4_ONLY="true" && unset IPV6_ONLY ;;
 	6) IPV6_ONLY="true" && unset IPV4_ONLY ;;
 	c) CUSTOM_SERVER=${OPTARG} ;;
 	p) CUSTOM_PORTS=${OPTARG} ;;
+	f) FULL="true" ;;
 	r)
 		case "$OPTARG" in
 		na) REGION="North America" ;;
@@ -509,21 +510,26 @@ SERVERS=(
 	"speedtest.telecom.mu"     "5201-5209" "Mauritius Telecom" "Port Louis, Mauritius(1G)" "Africa" "v4"
 	"speedtestrh.telecom.mu"   "5201-5209" "Mauritius Telecom" "Rose Hill, Mauritius(1G)"  "Africa" "v4"
 	# Europe
-	"spd-icsrv.hostkey.com"          "5201-5210" "Hostkey"    "Reykjavik, Iceland(10G)"      "Europe" "v4"
-	"lg.terrahost.com"               "9200-9240" "TerraHost"  "Sandefjord, Norway(10G)"      "Europe" "v4|v6"
-	"se-speedt01.fre.nis.telia.net"  "5202-5210" "Telia"      "Stockholm, Sweden(10G)"       "Europe" "v4"
-	"speedtest.hiper.dk"             "5201-5203" "Hiper"      "Copenhagen, Denmark(10G)"     "Europe" "v4|v6"
-	"lon.speedtest.clouvider.net"    "5200-5209" "Clouvider"  "London, United Kingdom(10G)"  "Europe" "v4|v6"
-	"speedtest.novoserve.com"        "5201-5206" "Novoserve"  "Amsterdam, Netherlands(40G)"  "Europe" "v4|v6"
-	"paris.testdebit.info"           "9200-9240" "Bouygues"   "Paris, France(10G)"           "Europe" "v4|v6"
-	"iperf.par.as62000.net"          "9200-9240" "SERVERD"    "Paris, France(10G)"           "Europe" "v4|v6"
-	"iperf3.moji.fr"                 "5200-5240" "Moji"       "Paris, France(100G)"          "Europe" "v4|v6"
-	"scaleway.testdebit.info"        "9200-9240" "Scaleway"   "Vitry-sur-Seine, France(10G)" "Europe" "v4|v6"
-	"rbx.proof.ovh.net"              "5202-5210" "OVH"        "Roubaix, France(10G)"         "Europe" "v4|v6"
-	"sbg.proof.ovh.net"              "5201-5210" "OVH"        "Strasbourg, France(10G)"       "Europe" "v4|v6"
-	"fra.speedtest.clouvider.net"    "5200-5209" "Clouvider"  "Frankfurt, Germany(10G)"      "Europe" "v4|v6"
-	"speedtest.fra1.de.leaseweb.net" "5201-5210" "Leaseweb"   "Frankfurt, Germany(10G)"      "Europe" "v4|v6"
-	"speedtest.wtnet.de"             "5201-5210" "wilhelm.tel" "Frankfurt, Germany(40G)"     "Europe" "v4|v6"
+	"spd-icsrv.hostkey.com"          "5201-5210" "Hostkey"     "Reykjavik, Iceland(10G)"      "Europe" "v4"
+	"lg.terrahost.com"               "9200-9240" "TerraHost"   "Sandefjord, Norway(10G)"      "Europe" "v4|v6"
+	"se-speedt01.fre.nis.telia.net"  "5202-5210" "Telia"       "Stockholm, Sweden(10G)"       "Europe" "v4"
+	"speedtest.hiper.dk"             "5201-5203" "Hiper"       "Copenhagen, Denmark(10G)"     "Europe" "v4|v6"
+	"speedtest.extra.telia.fi"       "5201-5208" "Telia"       "Helsinki, Finland(10G)"       "Europe" "v4"
+	"lon.speedtest.clouvider.net"    "5200-5209" "Clouvider"   "London, United Kingdom(10G)"  "Europe" "v4|v6"
+	"speedtest.novoserve.com"        "5201-5206" "Novoserve"   "Amsterdam, Netherlands(40G)"  "Europe" "v4|v6"
+	"ping-ams1.online.net"           "5201-5210" "Scaleway"    "Amsterdam, Netherlands(10G)"  "Europe" "v4"
+	"paris.testdebit.info"           "9200-9240" "Bouygues"    "Paris, France(10G)"           "Europe" "v4|v6"
+	"iperf.par.as62000.net"          "9200-9240" "SERVERD"     "Paris, France(10G)"           "Europe" "v4|v6"
+	"iperf3.moji.fr"                 "5200-5240" "Moji"        "Paris, France(100G)"          "Europe" "v4|v6"
+	"scaleway.testdebit.info"        "9200-9240" "Scaleway"    "Vitry-sur-Seine, France(10G)" "Europe" "v4|v6"
+	"ping.online.net"                "5201-5210" "Scaleway"    "Paris, France(100G)"          "Europe" "v4"
+	"ping6.online.net"               "5201-5210" "Scaleway"    "Paris, France(100G)"          "Europe" "v6"
+	"rbx.proof.ovh.net"              "5202-5210" "OVH"         "Roubaix, France(10G)"         "Europe" "v4|v6"
+	"sbg.proof.ovh.net"              "5201-5210" "OVH"         "Strasbourg, France(10G)"      "Europe" "v4|v6"
+	"178.215.228.109"                "9201-9240" "Eseven"      "Frankfurt, Germany(10G)"      "Europe" "v4"
+	"fra.speedtest.clouvider.net"    "5200-5209" "Clouvider"   "Frankfurt, Germany(10G)"      "Europe" "v4|v6"
+	"speedtest.fra1.de.leaseweb.net" "5201-5210" "Leaseweb"    "Frankfurt, Germany(10G)"      "Europe" "v4|v6"
+	"speedtest.wtnet.de"             "5201-5210" "wilhelm.tel" "Frankfurt, Germany(40G)"      "Europe" "v4|v6"
 	# North America
 	"bhs.proof.ovh.ca"                "5201-5210" "OVH"       "Beauharnois, Canada(1G)"             "North America" "v4|v6"
 	"speedtest.sfo12.us.leaseweb.net" "5201-5210" "Leaseweb"  "San Francisco, United States(10G)"   "North America" "v4|v6"
@@ -538,6 +544,7 @@ SERVERS=(
 	"speedtest.mia11.us.leaseweb.net" "5201-5210" "Leaseweb"  "Miami, United States(10G)"           "North America" "v4|v6"
 	"ash.speedtest.clouvider.net"     "5200-5209" "Clouvider" "Ashburn, United States(10G)"         "North America" "v4|v6"
 	"speedtest.wdc2.us.leaseweb.net"  "5201-5210" "Leaseweb"  "Washington D.C., United States(10G)" "North America" "v4|v6"
+	"speedtest.us.novoserve.com"      "5201-5206" "Novoserve" "New Jersey, United States(10G)"      "North America" "v4|v6"
 	"nyc.speedtest.clouvider.net"     "5200-5209" "Clouvider" "New York City, United States(10G)"   "North America" "v4|v6"
 	"speedtest.nyc1.us.leaseweb.net"  "5201-5210" "Leaseweb"  "New York City, United States(10G)"   "North America" "v4|v6"
 	# South America
@@ -548,6 +555,30 @@ SERVERS=(
 	"syd.proof.ovh.net"               "5201-5210" "OVH"      "Sydney, Australia(1G)"      "Oceania" "v4|v6"
 	"speedtest.lagoon.nc"             "5202-5210" "Lagoon"   "Noumea, New Caledonia(10G)" "Oceania" "v4|v6"
 )
+
+if [[ "$FULL" == false ]]; then
+	SERVERS=(
+		# Asia
+		"speedtest.tyo11.jp.leaseweb.net" "5201-5210" "Leaseweb"   "Tokyo, Japan(10G)"         "Asia" "v4|v6"
+		"speedtest.uztelecom.uz"          "5200-5209" "Uztelecom"  "Tashkent, Uzbekistan(10G)" "Asia" "v4|v6"
+		"speedtest.sin1.sg.leaseweb.net"  "5201-5210" "Leaseweb"   "Singapore, Singapore(10G)" "Asia" "v4|v6"
+		# Europe
+		"lg.terrahost.com"               "9200-9240" "TerraHost"   "Sandefjord, Norway(10G)"      "Europe" "v4|v6"
+		"speedtest.novoserve.com"        "5201-5206" "Novoserve"   "Amsterdam, Netherlands(40G)"  "Europe" "v4|v6"
+		"paris.testdebit.info"           "9200-9240" "Bouygues"    "Paris, France(10G)"           "Europe" "v4|v6"
+		"speedtest.wtnet.de"             "5201-5210" "wilhelm.tel" "Frankfurt, Germany(40G)"      "Europe" "v4|v6"
+		# North America
+		"speedtest.sfo12.us.leaseweb.net" "5201-5210" "Leaseweb"  "San Francisco, United States(10G)"   "North America" "v4|v6"
+		"la.speedtest.clouvider.net"      "5200-5209" "Clouvider" "Los Angeles, United States(10G)"     "North America" "v4|v6"
+		"speedtest.chi11.us.leaseweb.net" "5201-5210" "Leaseweb"  "Chicago, United States(10G)"         "North America" "v4|v6"
+		"ash.speedtest.clouvider.net"     "5200-5209" "Clouvider" "Ashburn, United States(10G)"         "North America" "v4|v6"
+		"speedtest.nyc1.us.leaseweb.net"  "5201-5210" "Leaseweb"  "New York City, United States(10G)"   "North America" "v4|v6"
+		# South America
+		"speedtest.sao1.edgoo.net"    "9204-9240" "Edgoo" "Sao Paulo, Brazil(10G)" "South America" "v4|v6"
+		# Oceania
+		"speedtest.syd12.au.leaseweb.net" "5201-5210" "Leaseweb" "Sydney, Australia(10G)"     "Oceania" "v4|v6"
+	)
+fi
 echo "* ** ** ** ** ** ** ** ** ** ** ** ** ** *"
 echo "*                 iPench                 *"
 echo "*  Yet Another Network Benchmark Script  *"
@@ -560,13 +591,8 @@ if [[ "$CUSTOM_SERVER" != false ]]; then
 		CUSTOM_PORTS="$CUSTOM_PORTS-$CUSTOM_PORTS"
 	fi
 	MODE=4
-	if [[ "$IPV6_ONLY" == true ]]; then
+	if [[ "$IPV6_CHECK" == true ]]; then
 		MODE=6
-	fi
-	if [[ "$IPV4_ONLY" != true && "$IPV6_ONLY" != true ]]; then
-		domain_ipversion_check "$CUSTOM_SERVER" "$MODE"
-	else
-		domain_ipversion_check "$CUSTOM_SERVER" "$MODE" yes
 	fi
 	if [[ "$MODE" == -1 || "$RESULT" == -1 ]]; then
 		echo "Error: Domain is unreachable"
